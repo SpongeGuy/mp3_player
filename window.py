@@ -21,11 +21,12 @@ window.resizable(0, 0)
 clock_font = font.Font(family="Digital Display", size=30)
 vcr_font = font.Font(family="VCR OSD Mono", size=24)
 craft_font = font.Font(family="Crafter's Delight", size=12)
+small_craft_font = font.Font(family="Crafter's Delight", size=8)
 
 # ============================clock============================
 clock = tk.Label(
 	window, 
-	font=craft_font, 
+	font=small_craft_font, 
 	fg='white', 
 	bg='black'
 	)
@@ -95,32 +96,52 @@ songlist = tk.Listbox(
 	font=craft_font, 
 	height=8,
 	)
-songlist.grid(row=3, column=0, columnspan=2, sticky='W')
+songlist.grid(row=len(window.grid_slaves()), column=0, columnspan=2, sticky='w')
 
 def handle_return(event):
-	# get selected index
+	# select file to open
 	selected_index = songlist.curselection()[0]
-	# get the value
 	selected_value = songlist.get(selected_index)
-	print(selected_value)
+	browser.select(selected_value)
+	populate_songlist(songlist, selected_index)
 
 def handle_backspace(event):
-	browser.navigate_cwd_out(browser.cwd)
+	# navigate cwd out
+	selected_index = songlist.curselection()[0]
+	browser.navigate_cwd_out()
+	populate_songlist(songlist, selected_index)
+
+def on_select(event):
+	# do stuff when selection changes
+	contents = browser.get_directories()
+	selected_index = songlist.curselection()[0]
+	selected_value = songlist.get(selected_index)
+	print(browser.get_song_tuple(selected_value, contents))
 
 # this will need to be changed later
 songlist.bind('<Return>', handle_return)
 songlist.bind('<BackSpace>', handle_backspace)
+songlist.bind('<<ListboxSelect>>', on_select)
 
-songlist.select_set(0)
-songlist.focus_set()
 
-def populate_songlist(label):
+
+def populate_songlist(label, selection):
 	def populate():
-		cwd = browser.cwd
-		contents = browser.get_directories(cwd)
+		contents = browser.get_directories()
+		label.delete(0, tk.END)
+		i = 0
 		for item in contents:
-			songlist.insert(1, str(item))
+			item = browser.strip_item(item)
+			songlist.insert(i, item)
+			i += 1
 	populate()
+	if selection >= songlist.size():
+		selection = 0
+
+	songlist.select_set(selection)
+	songlist.activate(selection)
+	songlist.focus_set()
+	#songlist.event_generate('<<ListboxSelect>>')
 
 # ============================stopwatch============================
 
@@ -131,7 +152,7 @@ def populate_songlist(label):
 
 button = tk.Button(window, text="Click me!", command=lambda: print("Button clicked!"), font=vcr_font)
 
-populate_songlist(songlist)
+populate_songlist(songlist, 0)
 clock_label(clock)
 stopwatch_start(stopwatch)
 window.mainloop()
