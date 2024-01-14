@@ -300,6 +300,7 @@ def stopwatch_reset():
 
 
 # ============================songlist============================
+# bullshit
 metadata = [] # this is an analogue to the songlist, storing tuples of metadata instead of filenames.
 
 songlist = tk.Listbox(
