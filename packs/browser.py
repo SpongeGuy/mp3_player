@@ -4,7 +4,13 @@ import music_tag
 ROOT = os.getcwd()
 cwd = os.getcwd()
 
-def get_directories(cwd):
+
+
+def get_items_in_directory(cwd):
+	# returns list of filenames or tuples
+	# adds filename if file is not mp3
+	# adds tuple if file is mp3
+
 	contents = []
 	# if .mp3, sort by tracknumber then album
 	for filename in os.listdir(cwd):
@@ -17,13 +23,19 @@ def get_directories(cwd):
 			contents.append(filename)
 	return contents
 
+
+
 def strip_item(item):
 	# if item in contents is mp3 tuple, then just take the filename
 	# else item is already the filename. change nothing
 
 	if isinstance(item, tuple):
 		item = str(item[3])
+		if item.endswith('.mp3'):
+			item = item[:-4]
 	return item
+
+
 
 def strip_directory(dir):
 	# strip a path of its last directory
@@ -34,16 +46,22 @@ def strip_directory(dir):
 		print("Could not navigate_cwd_out")
 	return dir
 
+
+
 def navigate_cwd_out():
 	# go back in the cwd
 	global cwd
 	cwd = strip_directory(cwd)
 
-def get_song_tuple(item, contents):
+
+
+def get_song_tuple(filename, contents):
 	# pass through the filename and directory contents to get the full tuple
-	for file in contents:
-		if isinstance(file, tuple) and file[3] == item:
-			return file
+	for item in contents:
+		if isinstance(item, tuple) and item[3] == filename:
+			return item
+
+
 
 def get_song_filepath(item):
 	# pass through an mp3 tuple and get the filepath
@@ -52,6 +70,8 @@ def get_song_filepath(item):
 		return os.path.join(cwd, item[3])
 	else:
 		print("Could not get filepath of song:", "File is not an mp3.")
+
+
 
 def get_song_from_filepath(path):
 	# pass through a filepath and get the filename
@@ -64,45 +84,22 @@ def get_song_from_filepath(path):
 
 
 
-def select(user):
+def select(item):
 	# user is selected filename
 	global cwd
-
-	contents = get_directories(cwd)
+	contents = get_items_in_directory(cwd)
 
 	try:
-		item = user
 		if item == None:
 			raise Exception('invalid selection from dictionary')
 
-		if 'mp3' not in item:
-			if "." in item:
-				print("Cannot open file", item)
-			else:
-				cwd = os.path.join(cwd, item)
-			return
-
-		# it is now known that item is an mp3 file
-		# loop through contents and find matching result
-		for file in contents:
-			if isinstance(file, tuple) and file[3] == item:
-					item = file
-
-		track_number = item[0]
-		album = str(item[1])
-		artist = str(item[2])
-		filename = item[3]
-		if ".mp3" in filename:
+		if isinstance(item, tuple):
 			return item
+
+		if "." in item:
+			print("Cannot open file", item)
+		else:
+			cwd = os.path.join(cwd, item)
+		return
 	except Exception as e:
 		print("Invalid input.", e)
-
-
-def query():
-	while True:
-		contents = get_directories(cwd)
-		dict = print_contents(contents)
-		user = input("> ")
-
-
-		cwd = select(user, cwd, dict)
