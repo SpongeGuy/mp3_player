@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import font
 from time import strftime
 import packs.browser as browser
+from enum import Enum
 
 LOOP_TIME = 100
 
@@ -12,7 +13,7 @@ COLOR_GREEN = '#00ff00'
 COLOR_GREY = '#1f261e'
 COLOR_BLACK = '#000000'
 COLOR_WHITE = '#ffffff'
-COLOR_BLUE = '#1077dd'
+COLOR_BLUE = '#1066cc'
 
 def color(rgb):
 	# translates rgb tuple of int to a hexcode
@@ -28,14 +29,47 @@ root.configure(bg=COLOR_BLACK)
 root.resizable(0, 0)
 
 # ============================frames============================
+def create_new_frame(master):
+	frame = tk.Frame(
+		master,
+		bg=COLOR_BLACK
+		)
+	return frame
 
-player_frame = tk.Frame(
-	root,
-	bg=COLOR_BLACK,
-	)
-player_frame.columnconfigure(0, weight=1)
-player_frame.columnconfigure(1, weight=1)
-player_frame.pack()
+container = create_new_frame(root)
+container.grid_columnconfigure(0, weight=1)
+container.grid_rowconfigure(0, weight=1)
+container.pack(fill=tk.BOTH, expand=True)
+
+
+screen = 1
+
+class Screen(Enum):
+	player = 1
+	playlist = 2
+
+player_frame = create_new_frame(container)
+for i in range(2):
+	player_frame.grid_columnconfigure(i, weight=1)
+for i in range(5):
+	player_frame.grid_rowconfigure(i, weight=1)
+player_frame.grid(column=0, row=0, sticky='nsew')
+
+playlist_frame = create_new_frame(container)
+for i in range(0):
+	playlist_frame.grid_columnconfigure(i, weight=1)
+for i in range(0):
+	playlist_frame.grid_columnconfigure(i, weight=1)
+playlist_frame.grid(column=0, row=0, sticky='nsew')
+
+frames = {Screen.player: player_frame, Screen.playlist: playlist_frame}
+
+def switch_to_screen(screen):
+	current_frame = frames[screen]
+	current_frame.tkraise()
+
+switch_to_screen(Screen.player)
+
 
 # ============================fonts============================
 clock_font = font.Font(family="Digital Display", size=36)
@@ -147,17 +181,6 @@ label_status = tk.Label(
 	)
 label_status.grid(row=0, column=0, sticky='w')
 
-def status_loop():
-	def loop():
-		if player.paused:
-			label_status.config(text="PAUSED")
-		elif not player.playing:
-			label_status.config(text="STOPPED")
-		else:
-			label_status.config(text="PLAYING")
-		label_status.after(LOOP_TIME, loop)
-	loop()
-
 label_now_playing = tk.Label(
 	player_frame,
 	font=craft_font,
@@ -166,6 +189,8 @@ label_now_playing = tk.Label(
 	text='',
 	width=WINDOW_LENGTH,
 	anchor='w',
+	justify='left',
+	height=3,
 	)
 label_now_playing.grid(row=3, column=0, sticky='w', columnspan=3)
 
@@ -177,7 +202,7 @@ label_volume = tk.Label(
 	text='VOLUME',
 	anchor='e'
 	)
-label_volume.grid(row=0, column=2, sticky='e')
+label_volume.grid(row=0, column=1, sticky='e')
 
 label_volume_number = tk.Label(
 	player_frame,
@@ -187,7 +212,7 @@ label_volume_number = tk.Label(
 	text='',
 	anchor='e',
 	)
-label_volume_number.grid(row=1, column=2, sticky='en')
+label_volume_number.grid(row=1, column=1, sticky='en')
 
 from tkinter import ttk
 
@@ -212,7 +237,7 @@ progress_bar.update(0)
 
 label_playlist = tk.Label(
 	player_frame,
-	font=craft_font,
+	font=small_craft_font,
 	fg=COLOR_WHITE,
 	bg=COLOR_BLACK,
 	text='Directory'
@@ -221,24 +246,31 @@ label_playlist.grid(row=5, column=0, sticky='w')
 
 label_length = tk.Label(
 	player_frame,
-	font=craft_font,
+	font=small_craft_font,
 	fg=COLOR_WHITE,
 	bg=COLOR_BLACK,
 	text=''
 	)
-label_length.grid(row=5, column=2, sticky='e')
+label_length.grid(row=5, column=1, sticky='e')
 
-def currently_playing_loop():
+def radio_graphics_loop():
 	def loop():
+		# label_status
+		if player.paused:
+			label_status.config(text="PAUSED")
+		elif not player.playing:
+			label_status.config(text="STOPPED")
+		else:
+			label_status.config(text="PLAYING")
+
 		# label_now_playing
 		if not player.playing:
 			label_now_playing['text'] = "Not playing"
 		if player.metadata is not None:
 			if player.metadata[2] is not '':
-				label_now_playing['text'] = str(player.metadata[2]) + " - " + str(player.metadata[3][:-4])
+				label_now_playing['text'] = str(player.metadata[2]) + "\n" + str(player.metadata[1]) + "\n" + str(player.metadata[3][:-4])
 			else:
 				label_now_playing['text'] = str(player.metadata[3][:-4])
-
 		# progress_bar
 		song_duration = player.length
 		elapsed_time = player.elapsed_time
@@ -362,7 +394,6 @@ def populate_songlist(selection):
 	change_selection(selection)
 
 def handle_return(event):
-	print("hi")
 	global metadata
 	# runs when enter is pressed on songlist
 	# select file to open
@@ -415,8 +446,6 @@ def change_selection(selection):
 button = tk.Button(player_frame, text="Click me!", command=lambda: print("Button clicked!"), font=vcr_font)
 
 populate_songlist(0)
-#clock_loop(label_clock)
-status_loop()
-currently_playing_loop()
+radio_graphics_loop()
 stopwatch_loop()
 root.mainloop()
