@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import font
+
 from time import strftime
 import packs.browser as browser
 from enum import Enum
@@ -28,7 +28,7 @@ root.configure(bg=COLOR_BLACK)
 
 root.resizable(0, 0)
 
-# ============================frames============================
+# ============================screens============================
 def create_new_frame(master):
 	frame = tk.Frame(
 		master,
@@ -41,13 +41,6 @@ container.grid_columnconfigure(0, weight=1)
 container.grid_rowconfigure(0, weight=1)
 container.pack(fill=tk.BOTH, expand=True)
 
-
-screen = 1
-
-class Screen(Enum):
-	player = 1
-	playlist = 2
-
 player_frame = create_new_frame(container)
 for i in range(2):
 	player_frame.grid_columnconfigure(i, weight=1)
@@ -56,27 +49,56 @@ for i in range(5):
 player_frame.grid(column=0, row=0, sticky='nsew')
 
 playlist_frame = create_new_frame(container)
-for i in range(0):
-	playlist_frame.grid_columnconfigure(i, weight=1)
-for i in range(0):
-	playlist_frame.grid_columnconfigure(i, weight=1)
+playlist_frame.grid_columnconfigure(1, weight=1)
+playlist_frame.grid_rowconfigure(0, weight=1)
 playlist_frame.grid(column=0, row=0, sticky='nsew')
 
-frames = {Screen.player: player_frame, Screen.playlist: playlist_frame}
+downloader_frame = create_new_frame(container)
+downloader_frame.grid(column=0, row=0, sticky='nsew')
 
-def switch_to_screen(screen):
-	current_frame = frames[screen]
-	current_frame.tkraise()
+screens = {
+	player_frame: False, 
+	playlist_frame: False,
+	downloader_frame: False
+}
 
-switch_to_screen(Screen.player)
+def update_screen():
+	current_screen = None
+	for frame in screens:
+		if screens[frame] is True:
+			current_screen = frame
+	if current_screen is None:
+		screens[player_frame] = True
+		player_frame.tkraise()
+		return
+	current_screen.tkraise()
+
+def change_screen(screen):
+	for frame in screens:
+		screens[frame] = False
+
+	if screen in screens:
+		screens[screen] = True
+	else:
+		print(f"{screen} is not a valid screen.")
+	update_screen()
+
+def get_current_screen():
+	for frame in screens:
+		if screens[frame] is True:
+			return frame
+
+
+#change_screen(player_frame)
 
 
 # ============================fonts============================
+from tkinter import font
 clock_font = font.Font(family="Digital Display", size=36)
 vcr_font = font.Font(family="VCR OSD Mono", size=24)
 large_craft_font = font.Font(family="Crafter's Delight", size=16)
 craft_font = font.Font(family="Crafter's Delight", size=12)
-small_craft_font = font.Font(family="Crafter's Delight", size=10)
+small_craft_font = font.Font(family="Crafter's Delight", size=9)
 
 # ============================clock============================
 label_clock = tk.Label(
@@ -153,7 +175,13 @@ def player_rw(event):
 def player_stop(event):
 	player.stop()
 
-# ============================status bar============================
+def player_next(event):
+	player.next_song()
+
+def player_prev(event):
+	player.previous_song()
+
+# ============================player interface============================
 class CustomProgressbar(tk.Canvas):
 	def __init__(self, master=None, width=WINDOW_LENGTH - 1, height=10, bg=COLOR_GREY, fg=COLOR_GREEN):
 		super().__init__(master, width=width, height=height, bd=0, highlightthickness=0, bg=bg)
@@ -255,39 +283,40 @@ label_length.grid(row=5, column=1, sticky='e')
 
 def radio_graphics_loop():
 	def loop():
-		# label_status
-		if player.paused:
-			label_status.config(text="PAUSED")
-		elif not player.playing:
-			label_status.config(text="STOPPED")
-		else:
-			label_status.config(text="PLAYING")
-
-		# label_now_playing
-		if not player.playing:
-			label_now_playing['text'] = "Not playing"
-		if player.metadata is not None:
-			if player.metadata[2] is not '':
-				label_now_playing['text'] = str(player.metadata[2]) + "\n" + str(player.metadata[1]) + "\n" + str(player.metadata[3][:-4])
+		if player_frame is get_current_screen():
+			# label_status
+			if player.paused:
+				label_status.config(text="PAUSED")
+			elif not player.playing:
+				label_status.config(text="STOPPED")
 			else:
-				label_now_playing['text'] = str(player.metadata[3][:-4])
-		# progress_bar
-		song_duration = player.length
-		elapsed_time = player.elapsed_time
-		progress_value = (elapsed_time / song_duration)
-		progress_bar.update(progress_value)
+				label_status.config(text="PLAYING")
 
-		# label_length
-		song_length = 0
-		if player.playing:
-			song_length = player.length
-		label_length['text'] = get_clock_hour_value(song_length)
+			# label_now_playing
+			if not player.playing:
+				label_now_playing['text'] = "Not playing"
+			if player.metadata is not None:
+				if player.metadata[2] is not '':
+					label_now_playing['text'] = str(player.metadata[2]) + "\n" + str(player.metadata[1]) + "\n" + str(player.metadata[3][:-4])
+				else:
+					label_now_playing['text'] = str(player.metadata[3][:-4])
+			# progress_bar
+			song_duration = player.length
+			elapsed_time = player.elapsed_time
+			progress_value = (elapsed_time / song_duration)
+			progress_bar.update(progress_value)
 
-		# label_volume_number
-		label_volume_number['text'] = str(int(player.volume * 100))
+			# label_length
+			song_length = 0
+			if player.playing:
+				song_length = player.length
+			label_length['text'] = get_clock_hour_value(song_length)
+
+			# label_volume_number
+			label_volume_number['text'] = str(int(player.volume * 100))
 		
 
-		player_frame.after(LOOP_TIME, currently_playing_loop)
+		player_frame.after(LOOP_TIME, loop)
 	loop()
 
 
@@ -340,21 +369,53 @@ def stopwatch_reset():
 	running = False
 	stopwatch_start()
 
+# ============================playlist interface============================
+
+tracknumbers_listbox = tk.Listbox(
+	playlist_frame,
+	bg=COLOR_BLACK,
+	fg=COLOR_WHITE,
+	width=3,
+	font=craft_font,
+	highlightthickness=0,
+	borderwidth=0,
+	)
+tracknumbers_listbox.grid(column=0, row=0, sticky='nsw')
+
+tracks_listbox = tk.Listbox(
+	playlist_frame,
+	bg=COLOR_GREY,
+	fg=COLOR_WHITE,
+	font=craft_font,
+	highlightthickness=0,
+	borderwidth=0,
+	)
+tracks_listbox.grid(column=1, row=0, sticky='nswe')
+
+info_listbox = tk.Listbox(
+	playlist_frame,
+	bg=COLOR_BLACK,
+	fg=COLOR_WHITE,
+	font=craft_font,
+	highlightthickness=0,
+	borderwidth=0,
+	width=3,
+	)
+info_listbox.grid(column=2, row=0, sticky='nse')
 
 
-
-# ============================songlist============================
-metadata = [] # this is an analogue to the songlist, storing tuples of metadata instead of filenames.
+# ============================listbox_main============================
+metadata = [] # this is an analogue to the listbox_main, storing tuples of metadata instead of filenames.
 
 total_rows = len(player_frame.grid_slaves())
 
-songlist_canvas = tk.Canvas(
+listbox_main_canvas = tk.Canvas(
 	player_frame,
 	)
-songlist_canvas.grid(row=total_rows, column=0, columnspan=3, sticky='s')
+listbox_main_canvas.grid(row=total_rows, column=0, columnspan=3, sticky='s')
 
-songlist = tk.Listbox(
-	songlist_canvas, 
+listbox_main = tk.Listbox(
+	listbox_main_canvas, 
 	bg=COLOR_BLACK, 
 	fg=COLOR_WHITE,
 	selectbackground=COLOR_BLUE,
@@ -364,10 +425,18 @@ songlist = tk.Listbox(
 	highlightthickness=0,
 	borderwidth=0,
 	)
-songlist.pack(side='bottom', fill='x')
+listbox_main.pack(side='bottom', fill='x')
+
+def get_listbox():
+	listbox = None
+	if player_frame == get_current_screen():
+		listbox = listbox_main
+	elif playlist_frame == get_current_screen():
+		pass
+	return listbox
 
 
-def populate_songlist(selection):
+def populate_listbox(listbox, selection):
 	global playlist
 	global metadata
 	playlist = []
@@ -376,11 +445,11 @@ def populate_songlist(selection):
 		# populate graphical list
 		contents = browser.get_items_in_directory(browser.cwd)
 		metadata = contents
-		songlist.delete(0, tk.END)
+		listbox.delete(0, tk.END)
 		i = 0
 		for item in contents:
 			item = browser.strip_item(item)
-			songlist.insert(i, item)
+			listbox.insert(i, item)
 			i += 1
 
 		# populate playlist list list
@@ -388,64 +457,136 @@ def populate_songlist(selection):
 			if isinstance(item, tuple):
 				playlist.append(browser.get_song_filepath(item))
 	populate()
-	if selection >= songlist.size():
+	if selection >= listbox.size():
 		selection = 0
 
-	change_selection(selection)
+	change_selection(listbox, selection)
 
-def handle_return(event):
+def handle_enter(event):
+	# the OK button
 	global metadata
-	# runs when enter is pressed on songlist
-	# select file to open
-	selected_index = songlist.curselection()[0]
-	selected_value = metadata[selected_index]
-	info = browser.select(selected_value)
-	populate_songlist(selected_index)
+	listbox = get_listbox()
+	try:
+		selected_index = listbox.curselection()[0]
+		selected_value = metadata[selected_index]
+		info = browser.select(selected_value)
+		if player_frame == get_current_screen():
+			populate_listbox(listbox, selected_index)
+		elif playlist_frame == get_current_screen():
+			pass
 
-	if info is not None and not str(selected_value) == str(player.metadata):
-		# if selection is an mp3 file and selection isn't the same as the playing audio, then start player
-		player_start(selected_index, info)
+		if info is not None and not str(selected_value) == str(player.metadata):
+			# if selection is an mp3 file and selection isn't the same as the playing audio, then start player
+			player_start(selected_index, info)
+	except Exception as e:
+		print("Couldn't continue:", e)
 
 
-def handle_backspace(event):
-	# runs when backspace is pressed on songlist
-	# navigate cwd out
-	selected_index = songlist.curselection()[0]
-	browser.navigate_cwd_out()
-	populate_songlist(selected_index)
+def handle_back(event):
+	# the CANCEL button
+	listbox = get_listbox()
+	try:
+		selected_index = listbox.curselection()[0]
+		browser.navigate_cwd_out()
+		populate_listbox(listbox, selected_index)
+	except Exception as e:
+		print("Couldn't continue:", e)
 
 def on_select(event):
 	# do stuff when selection changes
 	contents = browser.get_items_in_directory(browser.cwd)
-	selected_index = songlist.curselection()[0]
-	selected_value = songlist.get(selected_index)
+	selected_index = listbox_main.curselection()[0]
+	selected_value = listbox_main.get(selected_index)
 
-# this will need to be changed later
-songlist.bind('<Return>', handle_return)
-songlist.bind('<BackSpace>', handle_backspace)
-songlist.bind('<<ListboxSelect>>', on_select)
-songlist.bind('<space>', player_pause)
-songlist.bind('<Prior>', player_volume_up)
-songlist.bind('<Next>', player_volume_down)
-songlist.bind('<l>', player_ff)
-songlist.bind('<j>', player_rw)
+def select_move_up(event):
+	listbox = get_listbox()
+	try:
+		selected_index = listbox_main.curselection()[0]
+		if selected_index != 0:
+			listbox.selection_clear(first=selected_index, last=selected_index)
+			change_selection(listbox, selected_index - 1)
+	except Exception as e:
+		print("Couldn't move selection up:", e)
 
-def change_selection(selection):
-	songlist.select_set(selection)
-	songlist.activate(selection)
-	songlist.focus_set()
-	songlist.see(selection)
+def select_move_down(event):
+	listbox = get_listbox()
+	try:
+		selected_index = listbox_main.curselection()[0]
+		if selected_index != len(listbox_main.get(0, "end")) - 1:
+			listbox.selection_clear(first=selected_index, last=selected_index)
+			change_selection(listbox, selected_index + 1)
+	except Exception as e:
+		print("Couldn't move selection down:", e)
+	
 
 
 
+def change_selection(listbox, selection):
+	listbox.selection_set(selection)
+	listbox.activate(selection)
+	listbox.focus_set()
+	listbox.see(selection)
 
+# ============================screen manager/swapper============================
 
+def swap_screen(event):
+	frames = list(screens.keys())
+	for i in range(len(frames)):
+		if screens[frames[i]] == True:
+			screens[frames[i]] = False
+			if i + 1 < len(frames):
+				#print("hi")
+				screens[frames[i+1]] = True
+				break
+			else:
+				screens[frames[0]] = True
+				break
+	update_screen()
 
+keys = {
+	'a': False, 
+	's': False, 
+	'd': False,
+	'f': False,
+	'f': False,
+	'q': False,
+	'w': False,
+	'e': False,
+	'r': False,
+	'Next': False,
+	'Prior': False,
+}
 
+key_actions = {
+	('d', 's'): player_next,
+	('a', 's'): player_prev,
+	('s',): player_pause,
+	('a',): player_rw,
+	('d',): player_ff,
+	('e',): handle_enter,
+	('w',): handle_back,
+	('r',): select_move_up,
+	('f',): select_move_down,
+	('q',): swap_screen,
+	('Prior',): player_volume_up,
+	('Next',): player_volume_down,
+}
 
-button = tk.Button(player_frame, text="Click me!", command=lambda: print("Button clicked!"), font=vcr_font)
+def keypress(event):
+	keys[event.keysym] = True
+	action = tuple(sorted(k for k, v in keys.items() if v))
+	if action in map(tuple, sorted(map(sorted, key_actions.keys()))):
+		key_actions[action](event)
 
-populate_songlist(0)
+def keyrelease(event):
+	keys[event.keysym] = False
+
+root.bind('<<ListboxSelect>>', on_select)
+root.bind('<KeyPress>', keypress)
+root.bind('<KeyRelease>', keyrelease)
+
+change_screen(player_frame)
+populate_listbox(listbox_main, 0)
 radio_graphics_loop()
 stopwatch_loop()
 root.mainloop()
