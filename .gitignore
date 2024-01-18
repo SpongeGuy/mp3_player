@@ -2,3 +2,11 @@ music
 __pycache__
 packs/__pycache__
 test.py
+project.sublime-project
+project.sublime-workspace
+build
+dist
+main.spec
+spongex64mp3.ico
+makefile.bat
+TODO.txt

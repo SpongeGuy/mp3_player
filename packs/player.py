@@ -61,40 +61,55 @@ class MusicPlayer:
 		self.length = pygame.mixer.Sound(self.playlist[self.index]).get_length()
 
 	def load_song(self):
-		pygame.mixer.music.load(self.playlist[self.index])
-		self._update_song_length()
-		self._update_song_metadata()
+		try:
+			pygame.mixer.music.load(self.playlist[self.index])
+			self._update_song_length()
+			self._update_song_metadata()
+		except Exception as e:
+			print("Could not load song:", e)
 
 	def play(self):
-		if not self.playing:
-			self.elapsed_time = 0
-			self.load_song()
-			pygame.mixer.music.play()
-			self.playing = True
-			self.paused = False
-			#print("playing")
+		try:
+			if not self.playing:
+				self.elapsed_time = 0
+				self.load_song()
+				if self.playlist == []:
+					raise Exception("playlist is empty")
+				pygame.mixer.music.play()
+				self.playing = True
+				self.paused = False
+		except Exception as e:
+			print("Could not play song:", e)
 
 	def pause(self):
-		pygame.mixer.music.pause()
-		self.paused = True
-		#print("paused")
+		try:
+			pygame.mixer.music.pause()
+			self.paused = True
+		except Exception as e:
+			print("Could not pause:", e)
 			
 	def resume(self):
-		pygame.mixer.music.unpause()
-		self.paused = False
-		#print("resumed")
+		try:
+			pygame.mixer.music.unpause()
+			self.paused = False
+		except Exception as e:
+			print("Could not resume:", e)
 
 	def stop(self):
 		pygame.mixer.music.stop()
 		self.playing = False
-		#print("stopped")
+		self.playlist = []
+		self.index = 0
 
 	def next_song(self):
 		try:
-			self.stop()
+			# stop player
+			pygame.mixer.music.stop()
+			self.playing = False
+
+			# pick next index in playlist
 			self.index = (self.index + 1) % len(self.playlist)
 			self.play()
-			#print("next")
 		except Exception as e:
 			print("Could not skip to next song:", e)
 
@@ -103,21 +118,22 @@ class MusicPlayer:
 		if self.elapsed_time > 2:
 			self.elapsed_time = 0
 			pygame.mixer.music.set_pos(self.elapsed_time)
-			#print("beginning")
 			return
 		# else skip to previous song
 		try:
-			self.stop()
+			# stop
+			pygame.mixer.music.stop()
+			self.playing = False
+
+			# pick previous index in playlist
 			self.index = (self.index - 1) % len(self.playlist)
 			self.play()
-			#print("previous")
 		except Exception as e:
 			print("Could not skip to previous song:", e)
 
 	def fast_forward(self, seconds=0.2):
 		try:
 			self.elapsed_time += seconds
-			#print("ff", self.elapsed_time)
 			pygame.mixer.music.set_pos(self.elapsed_time)
 		except Exception as e:
 			print("Couldn't fast forward:", e)

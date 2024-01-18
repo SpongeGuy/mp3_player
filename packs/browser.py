@@ -1,29 +1,55 @@
 import os
 import music_tag
+import tkinter as tk
 
 ROOT = os.getcwd()
 cwd = os.getcwd()
 
+COLOR_GREEN = '#00ff00'
+COLOR_GREY = '#1f261e'
+COLOR_BLACK = '#000000'
+COLOR_WHITE = '#ffffff'
+COLOR_BLUE = '#502ec1'
 
 
-def get_items_in_directory(cwd):
+def get_items_in_directory(dir):
 	# returns list of filenames or tuples
 	# adds filename if file is not mp3
 	# adds tuple if file is mp3
 
 	contents = []
 	# if .mp3, sort by tracknumber then album
-	for filename in os.listdir(cwd):
+	for filename in os.listdir(dir):
 		if filename.endswith('.mp3'):
-			song = music_tag.load_file(os.path.join(cwd, filename))
-			contents.append((song['tracknumber'].first, song['album'], song['artist'], filename))
+			song = music_tag.load_file(os.path.join(dir, filename))
+			try:
+				tracknumber = int(song['tracknumber'].first)
+			except Exception:
+				tracknumber = 0
+			try:
+				album = str(song['album'])
+			except Exception:
+				album = ''
+			try:
+				artist = str(song['artist'])
+			except Exception:
+				artist = ''
+			contents.append((tracknumber, album, artist, filename))
 	contents.sort()
-	for filename in os.listdir(cwd):
+	for filename in os.listdir(dir):
 		if not filename.endswith('.mp3'):
 			contents.append(filename)
 	return contents
 
-
+def get_amount_of_items_in_directory(dir):
+	count = 0
+	try:
+		for item in os.listdir(dir):
+			count += 1
+	except Exception as e:
+		# this will happen if dir is invalid
+		count = ''
+	return count
 
 def strip_item(item):
 	# if item in contents is mp3 tuple, then just take the filename
@@ -35,7 +61,12 @@ def strip_item(item):
 			item = item[:-4]
 	return item
 
-
+def get_item_filename(item):
+	# if item in contents is mp3 tuple, then just take the filename
+	# else item is already the filename. change nothing
+	if isinstance(item, tuple):
+		item = str(item[3])
+	return item
 
 def strip_directory(dir):
 	# strip a path of its last directory
@@ -103,3 +134,29 @@ def select(item):
 		return
 	except Exception as e:
 		print("Invalid input.", e)
+
+
+# ============================listbox functions============================
+
+def create_directory_listbox(master, bg=COLOR_BLACK, fg=COLOR_WHITE, selectbackground=COLOR_BLUE, highlightthickness=0, borderwidth=0, *args, **kwargs):
+	listbox = tk.Listbox(
+		master,
+		bg=bg,
+		fg=fg,
+		selectbackground=selectbackground,
+		highlightthickness=highlightthickness,
+		borderwidth=borderwidth,
+		*args, 
+		**kwargs
+		)
+	return listbox
+
+def populate_listbox(listbox, array):
+	try:
+		if not isinstance(list, array):
+			raise Exception("parameter must be a list")
+		listbox.delete(0, tk.END)
+		for i, item in enumerate(array):
+			listbox.insert(i, item)
+	except:
+		print("Could not populate listbox:", e)
