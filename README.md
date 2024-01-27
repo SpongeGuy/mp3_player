@@ -5,8 +5,8 @@ So how do you use it?
 1. Run it in the command line with `python main.py`.
 
 Or:
-1. Build it by launching the `makefile.bat`. This will build an exe file using pyinstaller for ease of use.
-2. Find the `.exe` file in the `dist` folder.
+1. Build it by launching the `makefile.sh`. This will build an executable file using pyinstaller for ease of use. This should work for your OS.
+2. Find the executable file in the `dist` folder.
 3. Drag the file out of the folder, into a directory with mp3 files (or folders as albums).
 4. Launch the file.
 5. Enjoy your music.
