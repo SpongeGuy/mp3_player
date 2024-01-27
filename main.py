@@ -365,6 +365,7 @@ watch_progress_bar_frame.grid(row=1, column=0, sticky='w')
 watch_progress_bar = CustomProgressbar(
 	watch_progress_bar_frame,
 	height=5,
+	width=WINDOW_LENGTH - 51
 	)
 watch_progress_bar.grid(sticky='nsew', pady=(5, 15))
 watch_progress_bar.update(0)

@@ -6,5 +6,5 @@ project.sublime-project
 project.sublime-workspace
 build
 dist
-main.spec
+MP3_PLAYER.spec
 TODO.txt
