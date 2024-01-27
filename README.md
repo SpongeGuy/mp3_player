@@ -3,6 +3,7 @@ This is a fully functioning mp3 player originally intended to be put on a Raspbe
 Essentially, it's a directory viewer but with the capability of playing mp3s.
 So how do you use it?
 1. Run it in the command line with `python main.py`.
+
 Or:
 1. Build it by launching the `makefile.bat`. This will build an exe file using pyinstaller for ease of use.
 2. Find the `.exe` file in the `dist` folder.
