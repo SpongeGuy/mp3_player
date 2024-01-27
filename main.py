@@ -12,8 +12,9 @@ COLOR_GREEN = '#00ff00'
 COLOR_GREY = '#1f261e'
 COLOR_BLACK = '#000000'
 COLOR_WHITE = '#ffffff'
-#COLOR_BLUE = '#1066cc'
-COLOR_BLUE = '#502ec1'
+COLOR_BLUE = '#1066cc'
+COLOR_PURPLE = '#502ec1'
+COLOR_LIGHTGREY = '#cecece'
 
 def color(rgb):
 	# translates rgb tuple of int to a hexcode
@@ -36,15 +37,17 @@ if sys.platform == 'win32':
 	import os
 	from ctypes import windll
 	basedir = os.path.dirname(__file__)
-	myappid = "sponge.mp3_player.1_0"
+	myappid = "sponge.mp3_music.1_0"
 	windll.shell32.SetCurrentProcessExplicitAppUserModelID(myappid)
 	root.iconbitmap(os.path.join(basedir, "spongex64mp3.ico"))
 
 # ============================screens============================
-def create_new_frame(master, background=COLOR_BLACK):
+def create_new_frame(master, background=COLOR_BLACK, *args, **kwargs):
 	frame = tk.Frame(
 		master,
-		bg=background
+		bg=background,
+		*args,
+		**kwargs
 		)
 	return frame
 
@@ -63,13 +66,13 @@ player_frame.grid(column=0, row=0, sticky='nsew')
 playlist_frame = create_new_frame(container)
 playlist_frame.grid(column=0, row=0, sticky='nsew')
 
-downloader_frame = create_new_frame(container)
-downloader_frame.grid(column=0, row=0, sticky='nsew')
+watch_frame = create_new_frame(container)
+watch_frame.grid(column=0, row=0, sticky='nsew')
 
 screens = {
 	player_frame: False, 
 	playlist_frame: False,
-	#downloader_frame: False
+	watch_frame: False
 }
 
 def update_screen():
@@ -153,44 +156,44 @@ import packs.player as p
 
 playlist = [] # this is a list of filepaths to mp3 files
 
-player = p.MusicPlayer(playlist)
+music = p.MusicPlayer(playlist)
 
-def player_start(index, info):
-	player.stop()
-	player.playlist = playlist
-	player.cwd = browser.cwd
-	player.index = index
-	player.play()
+def music_start(index, info):
+	music.stop()
+	music.playlist = playlist
+	music.cwd = browser.cwd
+	music.index = index
+	music.play()
 	stopwatch_reset()
 
-def player_volume_up(event):
-	player.volume_up()
+def music_volume_up(event):
+	music.volume_up()
 
-def player_volume_down(event):
-	player.volume_down()
+def music_volume_down(event):
+	music.volume_down()
 
-def player_pause(event):
-	if not player.playing:
-		player.play()
-	elif player.playing and not player.paused:
-		player.pause()
-	elif player.playing and player.paused:
-		player.resume()
+def music_pause(event):
+	if not music.playing:
+		music.play()
+	elif music.playing and not music.paused:
+		music.pause()
+	elif music.playing and music.paused:
+		music.resume()
 
-def player_ff(event):
-	player.fast_forward()
+def music_ff(event):
+	music.fast_forward()
 
-def player_rw(event):
-	player.rewind()
+def music_rw(event):
+	music.rewind()
 
-def player_stop(event):
-	player.stop()
+def music_stop(event):
+	music.stop()
 	
-def player_next(event):
-	player.next_song()
+def music_next(event):
+	music.next_song()
 
-def player_prev(event):
-	player.previous_song()
+def music_prev(event):
+	music.previous_song()
 # ============================player interface============================
 class CustomProgressbar(tk.Canvas):
 	def __init__(self, master=None, width=WINDOW_LENGTH - 1, height=10, bg=COLOR_GREY, fg=COLOR_GREEN):
@@ -210,16 +213,16 @@ class CustomProgressbar(tk.Canvas):
 		self.coords(self.rectangle, 0, 0, self.width * value, self.height)
 
 
-label_status = tk.Label(
+player_label_status = tk.Label(
 	player_frame, 
 	font=small_craft_font, 
 	fg=COLOR_WHITE, 
 	bg=COLOR_BLACK,
 	text="PLAYING"
 	)
-label_status.grid(row=0, column=0, sticky='w')
+player_label_status.grid(row=0, column=0, sticky='w')
 
-label_now_playing = tk.Label(
+player_label_now_playing = tk.Label(
 	player_frame,
 	font=craft_font,
 	fg=COLOR_WHITE,
@@ -230,9 +233,9 @@ label_now_playing = tk.Label(
 	justify='left',
 	height=3,
 	)
-label_now_playing.grid(row=3, column=0, sticky='w', columnspan=3)
+player_label_now_playing.grid(row=3, column=0, sticky='w', columnspan=3)
 
-label_volume = tk.Label(
+player_label_volume = tk.Label(
 	player_frame,
 	font=small_craft_font,
 	fg=COLOR_WHITE,
@@ -240,9 +243,9 @@ label_volume = tk.Label(
 	text='VOLUME',
 	anchor='e'
 	)
-label_volume.grid(row=0, column=1, sticky='e')
+player_label_volume.grid(row=0, column=1, sticky='e')
 
-label_volume_number = tk.Label(
+player_label_volume_number = tk.Label(
 	player_frame,
 	font=craft_font,
 	fg=COLOR_WHITE,
@@ -250,7 +253,7 @@ label_volume_number = tk.Label(
 	text='',
 	anchor='e',
 	)
-label_volume_number.grid(row=1, column=1, sticky='en')
+player_label_volume_number.grid(row=1, column=1, sticky='en')
 
 from tkinter import ttk
 
@@ -273,49 +276,41 @@ player_progress_bar = CustomProgressbar(
 player_progress_bar.grid(sticky='nsew',)
 player_progress_bar.update(0)
 
-label_playlist = tk.Label(
+player_label_playlist = tk.Label(
 	player_frame,
 	font=small_craft_font,
 	fg=COLOR_WHITE,
 	bg=COLOR_BLACK,
 	text='Directory'
 	)
-label_playlist.grid(row=5, column=0, sticky='w')
+player_label_playlist.grid(row=5, column=0, sticky='w')
 
-label_length = tk.Label(
+player_label_length = tk.Label(
 	player_frame,
 	font=small_craft_font,
 	fg=COLOR_WHITE,
 	bg=COLOR_BLACK,
 	text=''
 	)
-label_length.grid(row=5, column=1, sticky='e')
+player_label_length.grid(row=5, column=1, sticky='e')
 
 # ============================stopwatch============================
 from time import perf_counter
 from datetime import datetime
 
-label_stopwatch = tk.Label(
+player_label_stopwatch = tk.Label(
 	player_frame, 
 	font=clock_font, 
 	fg=COLOR_WHITE, 
 	bg=COLOR_BLACK,
 	text="00:00"
 	)
-label_stopwatch.grid(row=1, column=0, columnspan=3, sticky='w')
+player_label_stopwatch.grid(row=1, column=0, columnspan=3, sticky='w')
 
 start_time = None
 running = False
 
-def stopwatch_loop():
-	def loop():
-		label_stopwatch['text'] = get_clock_value(player.elapsed_time)
-		if player.paused or not player.playing:
-			label_stopwatch.config(fg=COLOR_WHITE)
-		else:
-			label_stopwatch.config(fg=COLOR_GREEN)
-		label_stopwatch.after(LOOP_TIME, loop)
-	loop()
+
 
 def stopwatch_start():
 	global start_time
@@ -338,6 +333,74 @@ def stopwatch_reset():
 	start_time = None
 	running = False
 	stopwatch_start()
+
+# ============================watch interface============================
+watch_frame.grid_columnconfigure(0, weight=1)
+watch_frame.grid_rowconfigure(0, weight=1)
+
+watch_status_frame = create_new_frame(
+	watch_frame,
+	background=COLOR_BLACK
+	)
+watch_status_frame.grid(row=0, column=0, sticky='nsew', pady=(60, 0), padx=(25, 25))
+
+watch_status_frame.grid_columnconfigure(0, weight=1)
+
+watch_label_stopwatch = tk.Label(
+	watch_status_frame, 
+	font=clock_font, 
+	fg=COLOR_WHITE, 
+	bg=COLOR_BLACK,
+	width=WINDOW_LENGTH,
+	text="00:00"
+	)
+watch_label_stopwatch.grid(row=0, column=0, sticky='ew')
+
+watch_progress_bar_frame = tk.Frame(
+	watch_status_frame, 
+	width=WINDOW_LENGTH - 50,
+	background=COLOR_BLACK,
+	)
+watch_progress_bar_frame.grid(row=1, column=0, sticky='w')
+watch_progress_bar = CustomProgressbar(
+	watch_progress_bar_frame,
+	height=5,
+	)
+watch_progress_bar.grid(sticky='nsew', pady=(5, 15))
+watch_progress_bar.update(0)
+
+watch_label_band = tk.Message(
+	watch_status_frame,
+	font=craft_font,
+	fg=COLOR_LIGHTGREY,
+	bg=COLOR_BLACK,
+	width=WINDOW_LENGTH,
+	anchor='w',
+	text=''
+	)
+watch_label_band.grid(row=2, column=0, sticky='w')
+
+watch_label_album = tk.Message(
+	watch_status_frame,
+	font=craft_font,
+	fg=COLOR_LIGHTGREY,
+	bg=COLOR_BLACK,
+	width=WINDOW_LENGTH - 50,
+	anchor='w',
+	text=''
+	)
+watch_label_album.grid(row=3, column=0, sticky='w')
+
+watch_label_song = tk.Message(
+	watch_status_frame,
+	font=craft_font,
+	fg=COLOR_WHITE,
+	bg=COLOR_BLACK,
+	width=WINDOW_LENGTH - 50,
+	text=''
+	)
+watch_label_song.grid(row=4, column=0, sticky='w')
+
 
 # ============================playlist interface============================
 
@@ -382,129 +445,160 @@ playlist_listbox_frame.grid_columnconfigure(1, weight=3)
 playlist_listbox_frame.grid_columnconfigure(2, weight=1)
 
 
-listbox_tracknumbers = tk.Listbox(
+playlist_listbox_tracknumbers = tk.Listbox(
 	playlist_listbox_frame,
 	bg=COLOR_BLACK,
 	fg=COLOR_WHITE,
-	selectbackground=COLOR_BLUE,
+	selectbackground=COLOR_PURPLE,
 	width=2,
 	font=tiny_craft_font,
 	highlightthickness=0,
 	borderwidth=0,
 	)
-listbox_tracknumbers.grid(column=0, row=0, sticky='nsw')
+playlist_listbox_tracknumbers.grid(column=0, row=0, sticky='nsw')
 
-listbox_directory = tk.Listbox(
+playlist_listbox_directory = tk.Listbox(
 	playlist_listbox_frame,
 	bg=COLOR_BLACK,
 	fg=COLOR_WHITE,
-	selectbackground=COLOR_BLUE,
+	selectbackground=COLOR_PURPLE,
 	font=tiny_craft_font,
 	highlightthickness=0,
 	borderwidth=0,
 	)
-listbox_directory.grid(column=1, row=0, sticky='nswe')
+playlist_listbox_directory.grid(column=1, row=0, sticky='nswe')
 
-listbox_info = tk.Listbox(
+playlist_listbox_info = tk.Listbox(
 	playlist_listbox_frame,
 	bg=COLOR_BLACK,
 	fg=COLOR_WHITE,
-	selectbackground=COLOR_BLUE,
+	selectbackground=COLOR_PURPLE,
 	font=tiny_craft_font,
 	highlightthickness=0,
 	borderwidth=0,
 	width=2,
 	)
-listbox_info.grid(column=2, row=0, sticky='nse')
+playlist_listbox_info.grid(column=2, row=0, sticky='nse')
 
 # ============================graphics loop============================
 
+def stopwatch_loop():
+	label = None
+	
+	def loop():
+		global label
+		if player_frame == get_current_screen():
+			label = player_label_stopwatch
+			label['text'] = get_clock_value(music.elapsed_time)
+		elif watch_frame == get_current_screen():
+			label = watch_label_stopwatch
+			label['text'] = get_clock_hour_value(music.elapsed_time)
+		
+		if music.paused or not music.playing:
+			label.config(fg=COLOR_WHITE)
+		else:
+			label.config(fg=COLOR_GREEN)
+		label.after(LOOP_TIME, loop)
+	loop()
+
 def graphics_loop():
 	def loop():
-		song_duration = player.length
-		elapsed_time = player.elapsed_time
+		song_duration = music.length
+		elapsed_time = music.elapsed_time
 		progress_value = (elapsed_time / song_duration)
 		if player_frame is get_current_screen(): # player_frame
-			# label_status
-			if player.paused:
-				label_status.config(text="PAUSED")
-			elif not player.playing:
-				label_status.config(text="STOPPED")
+			# player_label_status
+			if music.paused:
+				player_label_status.config(text="PAUSED")
+			elif not music.playing:
+				player_label_status.config(text="STOPPED")
 			else:
-				label_status.config(text="PLAYING")
+				player_label_status.config(text="PLAYING")
 
-			# label_now_playing
-			if not player.playing:
-				label_now_playing['text'] = "Not playing"
-			elif player.metadata is not None:
-				if player.metadata[2] is not '':
-					label_now_playing['text'] = str(player.metadata[2]) + "\n" + str(player.metadata[1]) + "\n" + str(player.metadata[3][:-4])
+			# player_label_now_playing
+			if not music.playing:
+				player_label_now_playing['text'] = "Not playing"
+			elif music.metadata is not None:
+				if music.metadata[2] is not '':
+					player_label_now_playing['text'] = str(music.metadata[2]) + "\n" + str(music.metadata[1]) + "\n" + str(music.metadata[3][:-4])
 				else:
-					label_now_playing['text'] = str(player.metadata[3][:-4])
+					player_label_now_playing['text'] = str(music.metadata[3][:-4])
 			# progress_bar
 			
 			player_progress_bar.update(progress_value)
 
-			# label_length
+			# player_label_length
 			song_length = 0
-			if player.playing:
-				song_length = player.length
-			label_length['text'] = get_clock_hour_value(song_length)
+			if music.playing:
+				song_length = music.length
+			player_label_length['text'] = get_clock_hour_value(song_length)
 
-			# label_volume_number
-			label_volume_number['text'] = str(int(player.volume * 100))
+			# player_label_volume_number
+			player_label_volume_number['text'] = str(int(music.volume * 100))
 
-		if playlist_frame is get_current_screen(): # playlist_frame
+		elif playlist_frame is get_current_screen(): # playlist_frame
 			playlist_progress_bar.update(progress_value)
 
 			# playlist_playing_status_label
-			if player.paused:
+			if music.paused:
 				playlist_playing_status_label['text'] = '▮▮'
-			elif not player.playing:
+			elif not music.playing:
 				playlist_playing_status_label['text'] = '■'
 			else:
 				playlist_playing_status_label['text'] = '▶'
 
+		elif watch_frame is get_current_screen(): # watch_frame
+			watch_progress_bar.update(progress_value)
+			if not music.playing:
+				watch_label_band['text'] = ""
+				watch_label_album['text'] = "Not playing"
+				watch_label_song['text'] = ""
+			elif music.metadata is not None:
+				if music.metadata[2] is not '':
+					watch_label_band['text'] = str(music.metadata[2])
+					watch_label_album['text'] = str(music.metadata[1])
+					watch_label_song['text'] = str(music.metadata[0]) + " - " + str(music.metadata[3][:-4])
+
 		player_frame.after(LOOP_TIME, loop)
 	loop()
 
-# ============================listbox_main============================
-metadata = [] # this is an analogue to the listbox_main, storing tuples of metadata instead of filenames.
+# ============================player_listbox_directory============================
+metadata = [] # this is an analogue to the player_listbox_directory, storing tuples of metadata instead of filenames.
 
 # TODO: ADD ALL THIS CODE TO BROWSER.PY AND MAKE IT INTO A CLASS BC DAMN
 
 total_rows = len(player_frame.grid_slaves())
 
-listbox_main_canvas = tk.Canvas(
+player_listbox_directory_canvas = tk.Canvas(
 	player_frame,
 	)
-listbox_main_canvas.grid(row=total_rows, column=0, columnspan=3, sticky='s')
+player_listbox_directory_canvas.grid(row=total_rows, column=0, columnspan=3, sticky='s')
 
-listbox_main = tk.Listbox(
-	listbox_main_canvas, 
+player_listbox_directory = tk.Listbox(
+	player_listbox_directory_canvas, 
 	bg=COLOR_BLACK, 
 	fg=COLOR_WHITE,
-	selectbackground=COLOR_BLUE,
+	selectbackground=COLOR_PURPLE,
 	font=craft_font, 
 	height=8,
 	width=WINDOW_LENGTH,
 	highlightthickness=0,
 	borderwidth=0,
 	)
-listbox_main = browser.create_directory_listbox(
-	listbox_main_canvas,
+player_listbox_directory = browser.create_directory_listbox(
+	player_listbox_directory_canvas,
 	font=craft_font,
 	height=8,
 	width=WINDOW_LENGTH
 	)
-listbox_main.pack(side='bottom', fill='x')
+player_listbox_directory.pack(side='bottom', fill='x')
 
 def get_listbox():
 	listbox = None
 	if player_frame == get_current_screen():
-		listbox = listbox_main
+		listbox = player_listbox_directory
 	elif playlist_frame == get_current_screen():
-		listbox = listbox_directory
+		listbox = playlist_listbox_directory
 	return listbox
 
 
@@ -522,23 +616,23 @@ def populate_directory_listbox():
 		contents = browser.get_items_in_directory(browser.cwd)
 		metadata = contents
 		listbox = get_listbox()
-		if playlist_frame == get_current_screen(): # playlist screen
-			listbox_tracknumbers.delete(0, tk.END)
-			listbox_directory.delete(0, tk.END)
-			listbox_info.delete(0, tk.END)
+		if playlist_frame is get_current_screen(): # playlist screen
+			playlist_listbox_tracknumbers.delete(0, tk.END)
+			playlist_listbox_directory.delete(0, tk.END)
+			playlist_listbox_info.delete(0, tk.END)
 			for i, item in enumerate(contents):
 				tracknumber = ''
 				if isinstance(item, tuple):
 					tracknumber = item[0]
 				displayname = browser.strip_item(item)
-				listbox_tracknumbers.insert(i, tracknumber)
-				listbox_directory.insert(i, displayname)
+				playlist_listbox_tracknumbers.insert(i, tracknumber)
+				playlist_listbox_directory.insert(i, displayname)
 
 				filename = browser.get_item_filename(item)
 				directory = browser.cwd + "\\" + filename
 				amount_of_items_inside = browser.get_amount_of_items_in_directory(directory)
-				listbox_info.insert(i, amount_of_items_inside)
-		else: # player screen
+				playlist_listbox_info.insert(i, amount_of_items_inside)
+		elif player_frame is get_current_screen(): # player screen
 			listbox.delete(0, tk.END)
 			for i, item in enumerate(contents):
 				item = browser.strip_item(item)
@@ -569,9 +663,9 @@ def handle_enter(event):
 		populate_directory_listbox()
 
 
-		if (info is not None and not str(selected_value) == str(player.metadata)) or (info is not None and not player.playing):
+		if (info is not None and not str(selected_value) == str(music.metadata)) or (info is not None and not music.playing):
 			# if selection is an mp3 file and selection isn't the same as the playing audio, then start player
-			player_start(selected_index, info)
+			music_start(selected_index, info)
 	except Exception as e:
 		print("Couldn't continue:", e)
 
@@ -625,9 +719,11 @@ def select_move_down(event):
 def update_selection():
 	global selected_index
 	listbox = get_listbox()
+	if listbox == None:
+		return
 	if playlist_frame == get_current_screen():
-		listbox_tracknumbers.see(selected_index)
-		listbox_info.see(selected_index)
+		playlist_listbox_tracknumbers.see(selected_index)
+		playlist_listbox_info.see(selected_index)
 	listbox.selection_set(selected_index)
 	listbox.activate(selected_index)
 	listbox.focus_set()
@@ -650,7 +746,7 @@ def swap_screen(event):
 	update_screen()
 	populate_directory_listbox()
 
-
+# ============================keybindings============================
 keys = {
 	'a': False, 
 	's': False, 
@@ -667,19 +763,19 @@ keys = {
 
 key_actions = {
 # these must be in alphabetical order (i guess in order in utf-8 coding)
-	('d', 's'): player_next,
-	('a', 's'): player_prev,
-	('a', 'd', 's',): player_stop,
-	('s',): player_pause,
-	('a',): player_rw,
-	('d',): player_ff,
+	('d', 's'): music_next,
+	('a', 's'): music_prev,
+	('a', 'd', 's',): music_stop,
+	('s',): music_pause,
+	('a',): music_rw,
+	('d',): music_ff,
 	('e',): handle_enter,
 	('w',): handle_back,
 	('r',): select_move_up,
 	('f',): select_move_down,
 	('q',): swap_screen,
-	('Prior',): player_volume_up,
-	('Next',): player_volume_down,
+	('Prior',): music_volume_up,
+	('Next',): music_volume_down,
 }
 
 def keypress(event):
@@ -694,6 +790,8 @@ def keyrelease(event):
 root.bind('<<ListboxSelect>>', on_select)
 root.bind('<KeyPress>', keypress)
 root.bind('<KeyRelease>', keyrelease)
+
+# ============================main calls============================
 
 change_screen(player_frame)
 populate_directory_listbox()
