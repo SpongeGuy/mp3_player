@@ -14,7 +14,7 @@ COLOR_BLACK = '#000000'
 COLOR_WHITE = '#ffffff'
 COLOR_BLUE = '#1066cc'
 COLOR_PURPLE = '#502ec1'
-COLOR_LIGHTGREY = '#cecece'
+COLOR_LIGHTGREY = '#b5b5b5'
 
 def color(rgb):
 	# translates rgb tuple of int to a hexcode
