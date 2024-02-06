@@ -375,7 +375,7 @@ watch_label_band = tk.Message(
 	font=craft_font,
 	fg=COLOR_LIGHTGREY,
 	bg=COLOR_BLACK,
-	width=WINDOW_LENGTH,
+	width=WINDOW_LENGTH - 50,
 	anchor='w',
 	text=''
 	)

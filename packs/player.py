@@ -14,7 +14,7 @@ class MusicPlayer:
 	def __init__(self, playlist):
 		# playlist is a list of file paths to mp3s
 		self.cwd = None
-		self.metadata = None
+		self.metadata = None # tracknumber, album, artist, filename
 		self.playlist = playlist
 		self.index = 0
 		self.playing = False
