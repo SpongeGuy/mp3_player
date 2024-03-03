@@ -1,5 +1,5 @@
 # SPONGE'S MP3 PLAYER
-This is a fully functioning mp3 player originally intended to be put on a Raspberry Pi, but I've added support for Windows.
+This is a fully functioning mp3 player originally intended to be put on a Raspberry Pi, but I've added support for desktop.
 Essentially, it's a directory viewer but with the capability of playing mp3s.
 So how do you use it?
 1. Run it in the command line with `python main.py`.
