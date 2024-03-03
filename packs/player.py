@@ -151,13 +151,21 @@ class MusicPlayer:
 
 	def volume_down(self, amount=0.05):
 		if self.volume >= 0 and self.volume <= 1:
-			self.volume -= amount
+			if self.volume <= 0.05:
+				amount /= 5
+			print(amount)
+			self.volume = round(self.volume - amount, 2)
 			self._update_volume()
+			print(self.volume)
 
 	def volume_up(self, amount=0.05):
 		if self.volume >= 0 and self.volume <= 1:
-			self.volume += amount
+			if self.volume < 0.05:
+				amount /= 5
+			print(amount)
+			self.volume = round(self.volume + amount, 2)
 			self._update_volume()
+			print(self.volume)
 
 	def mute(self):
 		pygame.mixer.music.set_volume(0)
