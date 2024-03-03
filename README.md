@@ -2,7 +2,7 @@
 This is a fully functioning mp3 player originally intended to be put on a Raspberry Pi, but I've added support for desktop.
 Essentially, it's a directory viewer but with the capability of playing mp3s.
 So how do you use it?
-1. Run it in the command line with `python main.py`.
+1. Download as zip, export the files, and run it in the command line with `python main.py`.
 
 Or:
 1. Build it by launching the `makefile.sh`. This will build an executable file using pyinstaller for ease of use. This should work for your OS.
